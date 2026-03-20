@@ -227,8 +227,8 @@ pipeline {
         }
         // Runs only if the build failed
         failure {
-            echo "Pipeline failed at stage: ${FAILED_STAGE}"
-            echo "Check the console output above for details"
+	    echo "Pipeline failed — check the console output above for details"
+            
         }
         // Runs after every build no matter what — good for cleanup
         always {
