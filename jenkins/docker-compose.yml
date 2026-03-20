@@ -1,0 +1,73 @@
+services:
+
+  jenkins:
+    build:
+      context: .
+      dockerfile: Dockerfile.jenkins
+    image: jenkins/jenkins:lts
+    container_name: jenkins
+    privileged: true
+    user: root
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Mount plugins.txt so the entrypoint script auto-installs plugins
+      - ./plugins.txt:/usr/share/jenkins/ref/plugins.txt:ro
+      # Mount casc.yaml — JCasC reads this path on startup
+      - ./casc.yaml:/var/jenkins_home/casc.yaml:ro
+    environment:
+      # Tell JCasC plugin where to find the config file
+      - CASC_JENKINS_CONFIG=/var/jenkins_home/casc.yaml
+
+      # Skip the setup wizard entirely — JCasC handles all setup
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false
+
+      # Secrets — set these in your .env file (gitignored)
+      # docker-compose automatically reads .env from the same directory
+      - JENKINS_ADMIN_PASSWORD=${JENKINS_ADMIN_PASSWORD}
+      - SONAR_TOKEN=${SONAR_TOKEN}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - SONARQUBE_URL=http://sonarqube:9000
+    networks:
+      - cicd-net
+    restart: unless-stopped
+
+  sonarqube:
+    image: sonarqube:lts-community
+    container_name: sonarqube
+    ports:
+      - "9000:9000"
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+    environment:
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+    networks:
+      - cicd-net
+    restart: unless-stopped
+
+  registry:
+    image: registry:2
+    container_name: local-registry
+    ports:
+      - "5000:5000"
+    volumes:
+      - registry_data:/var/lib/registry
+    networks:
+      - cicd-net
+    restart: unless-stopped
+
+volumes:
+  jenkins_home:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
+  registry_data:
+
+networks:
+  cicd-net:
+    driver: bridge

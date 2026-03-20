@@ -1,0 +1,28 @@
+# Core pipeline support
+workflow-aggregator:latest
+pipeline-stage-view:latest
+git:latest
+github:latest
+github-branch-source:latest
+
+# SonarQube integration
+sonar:latest
+
+# Docker support
+docker-workflow:latest
+docker-plugin:latest
+
+# Credentials management
+credentials-binding:latest
+plain-credentials:latest
+ssh-credentials:latest
+
+# Configuration as Code
+configuration-as-code:latest
+
+# Quality of life
+ansicolor:latest
+timestamper:latest
+build-timeout:latest
+
+nodejs:latest

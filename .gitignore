@@ -1,0 +1,24 @@
+# Node dependencies — always reinstalled from package.json
+node_modules/
+
+# Jest coverage output — generated during CI, not source code
+coverage/
+
+# Environment variables — NEVER commit real secrets
+.env
+
+# Docker volumes and local data (if mapped to project dir)
+data/
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+dist/
+build/

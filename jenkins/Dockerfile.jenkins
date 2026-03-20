@@ -1,0 +1,31 @@
+# ─────────────────────────────────────────────────────────────
+# Custom Jenkins image with plugins pre-installed.
+#
+# Why we build our own image instead of using jenkins/jenkins:lts
+# directly: modern Jenkins removed install-plugins.sh. The correct
+# way to pre-install plugins is jenkins-plugin-cli, which ships
+# inside the image and must be called during the Docker build.
+#
+# Result: when docker-compose up runs, Jenkins starts with all
+# plugins already installed — no GUI, no manual steps.
+# ─────────────────────────────────────────────────────────────
+
+FROM jenkins/jenkins:lts
+
+# Switch to root to install plugins
+# (jenkins-plugin-cli needs write access to the plugins directory)
+USER root
+
+# Copy our plugin list into the image
+COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
+
+# Run the plugin installer that ships with modern Jenkins.
+# --plugin-file reads our list, --plugin-download-directory puts
+# plugins where Jenkins expects them on startup.
+# This runs at BUILD time so plugins are baked into the image.
+RUN jenkins-plugin-cli \
+    --plugin-file /usr/share/jenkins/ref/plugins.txt \
+    --plugin-download-directory /usr/share/jenkins/ref/plugins/
+
+# Switch back to the jenkins user for runtime security
+USER jenkins

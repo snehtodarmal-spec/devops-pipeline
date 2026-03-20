@@ -1,0 +1,121 @@
+# ─────────────────────────────────────────────────────────────
+# Jenkins Configuration as Code (JCasC)
+#
+# This file replaces ALL manual Jenkins UI configuration.
+# Jenkins reads it automatically on startup because we mount it
+# into the container and set CASC_JENKINS_CONFIG env var.
+#
+# To apply changes after startup:
+#   Jenkins UI → Manage Jenkins → Configuration as Code → Reload
+# Or just restart the container.
+# ─────────────────────────────────────────────────────────────
+
+jenkins:
+
+  # ── Security & auth ───────────────────────────────────────
+  # Use local user database for now (simple for local dev).
+  # In production this would point at LDAP or GitHub OAuth.
+  securityRealm:
+    local:
+      allowsSignup: false           # only admin can create users
+      users:
+        - id: "admin"
+          # Password is read from JENKINS_ADMIN_PASSWORD env var
+          # so we never hardcode credentials in this file.
+          password: "${JENKINS_ADMIN_PASSWORD}"
+
+  # Only admin can do anything — good default for a build server
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+
+  # ── Number of build executors ─────────────────────────────
+  # How many jobs can run in parallel on this Jenkins instance.
+  # 2 is fine for local learning; bump to 4 on a beefier machine.
+  numExecutors: 2
+
+  # ── Global node properties ────────────────────────────────
+  # Sets environment variables available to ALL pipeline jobs.
+  globalNodeProperties:
+    - envVars:
+        env:
+          # Where our local Docker registry lives.
+          # Jenkinsfile reads this as env.REGISTRY_URL
+          - key: "REGISTRY_URL"
+            value: "localhost:5000"
+          # SonarQube host — Jenkins pipeline posts scan results here
+          - key: "SONAR_HOST_URL"
+            value: "http://sonarqube:9000"
+
+# ── Credentials ───────────────────────────────────────────────
+# All secrets live here. Values come from environment variables
+# (set in docker-compose.yml) so nothing sensitive is in this file.
+#
+# In the Jenkinsfile we reference these by their `id` field:
+#   withCredentials([string(credentialsId: 'sonar-token', ...)]) {}
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+          # SonarQube authentication token
+          # Generate this in SonarQube UI: My Account → Security → Tokens
+          - string:
+              id: "sonar-token"
+              description: "SonarQube authentication token"
+              secret: "${SONAR_TOKEN}"
+
+          # GitHub Personal Access Token
+          # Needed for webhook validation and repo cloning over HTTPS
+          # Generate at: GitHub → Settings → Developer Settings → PAT
+          - string:
+              id: "github-token"
+              description: "GitHub Personal Access Token"
+              secret: "${GITHUB_TOKEN}"
+
+          # Docker registry credentials (local for now, DockerHub in Phase 2)
+          # We use a plain string for the local registry (no auth needed locally)
+          # When we swap to DockerHub, change this to a usernamePassword credential
+          - string:
+              id: "registry-url"
+              description: "Docker registry URL"
+              secret: "${REGISTRY_URL:-localhost:5000}"
+
+# ── SonarQube server configuration ───────────────────────────
+# This is what you'd normally enter in:
+# Manage Jenkins → Configure System → SonarQube servers
+# The name "SonarQube" here must match exactly what the
+# Jenkinsfile uses in: withSonarQubeEnv('SonarQube') {}
+unclassified:
+  sonarGlobalConfiguration:
+    buildWrapperEnabled: true
+    installations:
+      - name: "SonarQube"
+        serverUrl: "http://sonarqube:9000"
+        credentialsId: "sonar-token"   # references the credential above
+
+  # ── Git global config ──────────────────────────────────────
+  # Sets the git user identity used when Jenkins clones repos.
+  gitscm:
+    globalConfigEmail: "jenkins@devops-pipeline.local"
+    globalConfigName: "Jenkins CI"
+
+  # ── Build pipeline view settings ──────────────────────────
+  # Timestamp format shown in Jenkins console output
+  timestamper:
+    allPipelines: true
+    systemTimeFormat: "HH:mm:ss"
+
+# ── Tool installations ─────────────────────────────────────────
+# Tells Jenkins where tools live (or to auto-install them).
+# "Automatic install" means Jenkins downloads the tool on first use.
+
+tool:
+  # SonarQube Scanner CLI — used in the pipeline's SonarQube Analysis stage
+  sonarRunnerInstallation:
+    installations:
+      - name: "SonarScanner"
+        properties:
+          - installSource:
+              installers:
+                - sonarRunnerInstaller:
+                    id: "5.0.1.3006"
