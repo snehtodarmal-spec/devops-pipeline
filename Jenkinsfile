@@ -42,17 +42,21 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                // Use 'SONAR_TOKEN' directly from the container environment 
-                // because we saw it exists in your 'env' output!
-                sh '''
-                    sonar-scanner \
-                        -Dsonar.projectKey=devops-pipeline-app \
-                        -Dsonar.sources=app/src \
-                        -Dsonar.tests=app/test \
-                        -Dsonar.javascript.lcov.reportPaths=app/coverage/lcov.info \
-                        -Dsonar.host.url=http://52.90.102.64:9000 \
-                        -Dsonar.login=$SONAR_TOKEN
-                '''
+                // withSonarQubeEnv refers to the name in your casc.yaml
+                // withCredentials provides the token we know works
+                withSonarQubeEnv('SonarQube') {
+                    withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_KEY')]) {
+                        sh '''
+                            sonar-scanner \
+                                -Dsonar.projectKey=devops-pipeline-app \
+                                -Dsonar.sources=app/src \
+                                -Dsonar.tests=app/test \
+                                -Dsonar.javascript.lcov.reportPaths=app/coverage/lcov.info \
+                                -Dsonar.host.url=http://52.90.102.64:9000 \
+                                -Dsonar.login=$SONAR_KEY
+                        '''
+                    }
+                }
             }
         }
 
