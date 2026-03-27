@@ -140,24 +140,21 @@ tool:
 jobs:
   - script: >
       pipelineJob('devops-pipeline') {
-        description('DevOps pipeline — Node.js, SonarQube, Docker')
-        triggers {
-          githubPush()
-        }
         definition {
           cpsScm {
             scm {
               git {
                 remote {
                   url('https://github.com/snehtodarmal-spec/devops-pipeline.git')
-                  credentials('github-token-userpass')
                 }
                 branch('*/main')
               }
             }
-            scriptPath('Jenkinsfile')
-            lightweight(true)
           }
+        }
+        # THIS IS THE KEY PART
+        triggers {
+          githubPush() 
         }
       }
 
