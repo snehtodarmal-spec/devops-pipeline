@@ -1,0 +1,48 @@
+# ─────────────────────────────────────────────────────────────
+# Custom Jenkins image with plugins pre-installed.
+#
+# Why we build our own image instead of using jenkins/jenkins:lts
+# directly: modern Jenkins removed install-plugins.sh. The correct
+# way to pre-install plugins is jenkins-plugin-cli, which ships
+# inside the image and must be called during the Docker build.
+#
+# Result: when docker-compose up runs, Jenkins starts with all
+# plugins already installed — no GUI, no manual steps.
+# ─────────────────────────────────────────────────────────────
+
+FROM jenkins/jenkins:lts
+
+# 1. Switch to root for all installations
+USER root
+
+# 2. Install system dependencies (curl, unzip, docker, and certificates)
+# Consolidating these ensures unzip and curl are available BEFORE we use them.
+RUN apt-get update && apt-get install -y \
+    curl \
+    unzip \
+    ca-certificates \
+    gnupg \
+    docker.io \
+    && rm -rf /var/lib/apt/lists/*
+
+# 3. Install Node.js 18
+# Using -fsSL ensures curl fails the build if the download fails
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y nodejs
+
+# 4. Install SonarQube Scanner CLI
+# Added -f to curl to ensure it returns an error code if the URL is broken
+RUN curl -fsSLo /tmp/sonar-scanner.zip \
+        https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip && \
+    unzip -o /tmp/sonar-scanner.zip -d /opt && \
+    ln -sf /opt/sonar-scanner-5.0.1.3006-linux/bin/sonar-scanner /usr/local/bin/sonar-scanner && \
+    rm /tmp/sonar-scanner.zip
+
+# 5. Handle Jenkins Plugins
+# It's better to do this last so that code changes above don't force 
+# a slow plugin re-download every time.
+COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
+RUN jenkins-plugin-cli --plugin-file /usr/share/jenkins/ref/plugins.txt
+
+# 6. Final security switch back to jenkins user
+USER jenkins

@@ -1,0 +1,8 @@
+node_modules
+coverage
+.env
+.git
+*.test.js
+junit.xml
+README.md
+Jenkinsfile
