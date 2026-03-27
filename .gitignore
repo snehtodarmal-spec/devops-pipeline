@@ -26,4 +26,4 @@ build/
 jenkins/.secrets
 .jenkins-secret/
 /jenkins/.secrets
-
+/jenkins/ssh_keys
