@@ -107,7 +107,7 @@ unclassified:
     buildWrapperEnabled: true
     installations:
       - name: "SonarQube"
-        serverUrl: "http://sonarqube:9000"
+        serverUrl: "http://52.90.102.64:9000"
         credentialsId: "sonar-token"   # references the credential above
 
   # ── Git global config ──────────────────────────────────────
