@@ -152,7 +152,6 @@ jobs:
             }
           }
         }
-        # THIS IS THE KEY PART
         triggers {
           githubPush() 
         }
