@@ -113,22 +113,22 @@ pipeline {
         stage('Deploy to EC2') {
             steps {
                 sh '''
-                    echo "Sanitizing SSH key..."
-                    
-                    # 2. Force a newline at the end (libcrypto requires this)
-                    tr -d '\\r' < /var/jenkins_home/ec2-key.pem > /tmp/deploy_key.pem
-                    echo "" >> /tmp/deploy_key.pem
-                    
-                    # 3. Set strict permissions on the NEW file
-                    chmod 400 /tmp/deploy_key.pem
+                    echo "Preparing SSH key..."
+                    # 1. Simple copy to a writable location to avoid Read-Only issues
+                    cp /var/jenkins_home/ec2-key.pem /tmp/deploy_key.pem
+                    chmod 600 /tmp/deploy_key.pem
 
-                    echo "Deploying to EC2 @ ${EC2_HOST}..."
+                    echo "Diagnostic: Checking key fingerprint..."
+                    ssh-keygen -l -f /tmp/deploy_key.pem || echo "Warning: Key format still looks invalid to local tools"
+
+                    echo "Connecting to ${EC2_HOST}..."
+                    # 2. Use -v to see the 'Handshake'. 
+                    # If this fails, the log will tell us exactly why.
+                    ssh -v -i /tmp/deploy_key.pem -o StrictHostKeyChecking=no ec2-user@${EC2_HOST} "echo 'SSH Handshake Successful'"
                     
-                    # 4. Use the cleaned key from /tmp
-                    ssh -i /tmp/deploy_key.pem -o StrictHostKeyChecking=no ec2-user@${EC2_HOST} \
-                        "bash -s" < scripts/deploy-ec2.sh
+                    echo "Running Deployment Script..."
+                    ssh -i /tmp/deploy_key.pem -o StrictHostKeyChecking=no ec2-user@${EC2_HOST} "bash -s" < scripts/deploy-ec2.sh
                     
-                    # 5. Clean up the temp file
                     rm /tmp/deploy_key.pem
                 '''
             }
