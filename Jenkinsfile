@@ -115,13 +115,12 @@ pipeline {
                 sh '''
                     echo "Sanitizing SSH key..."
                     
-                    # 1. Strip hidden Windows characters (\\r) and save to a writable location
                     # 2. Force a newline at the end (libcrypto requires this)
                     tr -d '\\r' < /var/jenkins_home/ec2-key.pem > /tmp/deploy_key.pem
                     echo "" >> /tmp/deploy_key.pem
                     
                     # 3. Set strict permissions on the NEW file
-                    chmod 600 /tmp/deploy_key.pem
+                    chmod 400 /tmp/deploy_key.pem
 
                     echo "Deploying to EC2 @ ${EC2_HOST}..."
                     
