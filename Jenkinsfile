@@ -4,7 +4,7 @@ pipeline {
     environment {
         IMAGE_NAME        = "devops-pipeline-app"
         IMAGE_TAG         = "${env.BUILD_NUMBER}"    
-        EC2_HOST          = "52.207.217.65"
+        EC2_HOST          = "3.236.211.72"
         EC2_USER          = "ec2-user"
         SONAR_HOST_URL    = "http://3.236.215.53:9000"
     }
