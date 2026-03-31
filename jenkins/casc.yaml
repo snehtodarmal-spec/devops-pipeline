@@ -45,7 +45,7 @@ jenkins:
           #  value: "localhost:5000"
           # SonarQube host — Jenkins pipeline posts scan results here
           - key: "SONAR_HOST_URL"
-            value: "http://52.90.102.64:9000"
+            value: "http://3.236.215.53:9000"
 
 # ── Credentials ───────────────────────────────────────────────
 # All secrets live here. Values come from environment variables
@@ -107,7 +107,7 @@ unclassified:
     buildWrapperEnabled: true
     installations:
       - name: "SonarQube"
-        serverUrl: "http://52.90.102.64:9000"
+        serverUrl: "http://3.236.215.53:9000"
         credentialsId: "sonar-token"   # references the credential above
 
   # ── Git global config ──────────────────────────────────────
