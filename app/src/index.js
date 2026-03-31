@@ -1,44 +1,75 @@
-// ─────────────────────────────────────────────
-// Main Express application entry point.
-// This is what gets built into the Docker image
-// and ultimately runs on EC2.
-// ─────────────────────────────────────────────
-
 const express = require('express');
 const app = express();
 
-// Port comes from environment variable so we can
-// override it at runtime without changing code.
-// Default to 3000 for local development.
+// Middleware to parse JSON bodies from incoming requests
+app.use(express.json());
+
 const PORT = process.env.PORT || 3000;
 
-// Root health-check route.
-// Jenkins pipeline will hit this after deploy
-// to verify the container is actually running.
+// Mock Database
+let items = [
+  { id: 1, name: 'Docker Image' },
+  { id: 2, name: 'EC2 Instance' }
+];
+
+// --- Existing Health Checks ---
+
 app.get('/', (req, res) => {
-  res.json({
-    status: 'ok',
-    message: 'DevOps pipeline app is running',
-    environment: process.env.NODE_ENV || 'development'
-  });
+  res.json({ status: 'ok', message: 'DevOps pipeline app is running' });
 });
 
-// /health is a dedicated liveness probe endpoint.
-// Useful later when we add Docker health checks
-// and AWS load balancer target group checks.
 app.get('/health', (req, res) => {
   res.status(200).json({ healthy: true });
 });
 
-// Only start listening when this file is run directly
-// (not when imported by tests — this lets Jest import
-// the app without binding a port and causing conflicts).
+// --- CRUD Operations ---
+
+// 1. CREATE: Add a new item
+app.post('/items', (req, res) => {
+  const newItem = {
+    id: items.length + 1,
+    name: req.body.name
+  };
+  items.push(newItem);
+  res.status(201).json(newItem);
+});
+
+// 2. READ: Get all items
+app.get('/items', (req, res) => {
+  res.json(items);
+});
+
+// 3. READ: Get a single item by ID
+app.get('/items/:id', (req, res) => {
+  const item = items.find(i => i.id === parseInt(req.params.id));
+  if (!item) return res.status(404).send('Item not found');
+  res.json(item);
+});
+
+// 4. UPDATE: Modify an existing item
+app.put('/items/:id', (req, res) => {
+  const item = items.find(i => i.id === parseInt(req.params.id));
+  if (!item) return res.status(404).send('Item not found');
+
+  item.name = req.body.name;
+  res.json(item);
+});
+
+// 5. DELETE: Remove an item
+app.delete('/items/:id', (req, res) => {
+  const itemIndex = items.findIndex(i => i.id === parseInt(req.params.id));
+  if (itemIndex === -1) return res.status(404).send('Item not found');
+
+  const deletedItem = items.splice(itemIndex, 1);
+  res.json(deletedItem);
+});
+
+// --- Server Startup ---
+
 if (require.main === module) {
   app.listen(PORT, () => {
     console.log(`Server started on port ${PORT}`);
   });
 }
 
-// Export the app so tests can import it and
-// make HTTP calls without starting the server.
 module.exports = app;
