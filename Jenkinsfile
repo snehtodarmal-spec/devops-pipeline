@@ -6,7 +6,7 @@ pipeline {
         IMAGE_TAG         = "${env.BUILD_NUMBER}"    
         EC2_HOST          = "52.207.217.65"
         EC2_USER          = "ec2-user"
-        SONAR_HOST_URL    = "http://52.90.102.64:9000"
+        SONAR_HOST_URL    = "http://3.236.215.53:9000"
     }
 
     options {
@@ -52,7 +52,7 @@ pipeline {
                                 -Dsonar.sources=app/src \
                                 -Dsonar.tests=app/test \
                                 -Dsonar.javascript.lcov.reportPaths=app/coverage/lcov.info \
-                                -Dsonar.host.url=http://52.90.102.64:9000 \
+                                -Dsonar.host.url=http://3.236.215.53:9000 \
                                 -Dsonar.login=$SONAR_KEY
                         '''
                     }
