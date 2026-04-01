@@ -140,6 +140,14 @@ tool:
 jobs:
   - script: >
       pipelineJob('devops-pipeline') {
+        properties {
+          githubProjectProperty {
+            projectUrlStr('https://github.com/snehtodarmal-spec/devops-pipeline/')
+          }
+        }
+        triggers {
+          githubPush()
+        }
         definition {
           cpsScm {
             scm {
@@ -152,9 +160,4 @@ jobs:
             }
           }
         }
-        triggers {
-          githubPush() 
-        }
       }
-
-
