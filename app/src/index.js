@@ -1,27 +1,19 @@
-const express = require('express');
-const app = express();
-const port = process.env.PORT || 3000;
+const request = require('supertest');
+const app = require('../src/index');
 
-app.get('/', (req, res) => {
-  res.json({ status: 'Success', 
-    message: 'CI/CD Pipeline is Fully Operational!',
-    version: '2.1.0',
-    environment: 'Production',
-    last_updated: new Date().toLocaleString()
+describe('App routes', () => {
+  test('GET / returns status ok', async () => {
+    const res = await request(app).get('/');
+    expect(res.statusCode).toBe(200);
+    
+    // CHANGE THIS LINE from 'ok' to 'Success'
+    expect(res.body.status).toBe('Success'); 
+  });
+
+  test('GET /health returns healthy', async () => {
+    const res = await request(app).get('/health');
+    expect(res.statusCode).toBe(200);
+    expect(res.body.healthy).toBe(true);
   });
 });
 
-app.get('/health', (req, res) => {
-  res.json({ healthy: true });
-});
-
-// ONLY start the server if this file is run directly
-// This prevents port conflicts during testing
-if (require.main === module) {
-  app.listen(port, '0.0.0.0', () => {
-    console.log(`Server running at port ${port}`);
-  });
-}
-
-// CRITICAL: This allows the test suite to see the app
-module.exports = app;
