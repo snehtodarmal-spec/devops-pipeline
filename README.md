@@ -1,3 +1,3 @@
 # DevOps Pipeline
 
-hmmm
+jenkins pipeline with sonarqube quality gates and ec2 deployment
