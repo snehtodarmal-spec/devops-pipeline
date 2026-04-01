@@ -1,16 +1,22 @@
-const request = require('supertest');
 const express = require('express');
-// If your index.js exports the app, import it here. 
-// Otherwise, we test the live routes.
+const app = express();
+const port = process.env.PORT || 3000;
 
-describe('App Coverage Test', () => {
-  it('should test the root route', async () => {
-    // Add logic to call the / route
-  });
-
-  it('should test the health route', async () => {
-    // Add logic to call the /health route
-  });
-  
-  // Add more tests for any error handling or other routes you added
+app.get('/', (req, res) => {
+  res.json({ status: 'ok' });
 });
+
+app.get('/health', (req, res) => {
+  res.json({ healthy: true });
+});
+
+// ONLY start the server if this file is run directly
+// This prevents port conflicts during testing
+if (require.main === module) {
+  app.listen(port, '0.0.0.0', () => {
+    console.log(`Server running on port ${port}`);
+  });
+}
+
+// CRITICAL: This allows the test suite to see the app
+module.exports = app;
