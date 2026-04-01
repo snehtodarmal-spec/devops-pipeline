@@ -3,7 +3,12 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 app.get('/', (req, res) => {
-  res.json({ status: 'ok' });
+  res.json({ status: 'Success', 
+    message: 'CI/CD Pipeline is Fully Operational!',
+    version: '2.1.0',
+    environment: 'Production',
+    last_updated: new Date().toLocaleString()
+  });
 });
 
 app.get('/health', (req, res) => {
