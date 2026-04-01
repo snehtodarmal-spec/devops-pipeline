@@ -1,19 +1,25 @@
-const request = require('supertest');
-const app = require('../src/index');
+const express = require('express');
+const app = express();
 
-describe('App routes', () => {
-  test('GET / returns status ok', async () => {
-    const res = await request(app).get('/');
-    expect(res.statusCode).toBe(200);
-    
-    // CHANGE THIS LINE from 'ok' to 'Success'
-    expect(res.body.status).toBe('Success'); 
-  });
+const PORT = process.env.PORT || 3000;
 
-  test('GET /health returns healthy', async () => {
-    const res = await request(app).get('/health');
-    expect(res.statusCode).toBe(200);
-    expect(res.body.healthy).toBe(true);
+app.get('/', (req, res) => {
+  res.json({
+    status: 'ok',
+    message: 'DevOps pipeline app is running',
+    environment: process.env.NODE_ENV || 'development'
   });
 });
+
+app.get('/health', (req, res) => {
+  res.status(200).json({ healthy: true });
+});
+
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server started on port ${PORT}`);
+  });
+}
+
+module.exports = app;
 
