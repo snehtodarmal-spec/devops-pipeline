@@ -14,7 +14,7 @@ app.get('/health', (req, res) => {
 // This prevents port conflicts during testing
 if (require.main === module) {
   app.listen(port, '0.0.0.0', () => {
-    console.log(`Server running on port ${port}`);
+    console.log(`Server running at port ${port}`);
   });
 }
 
