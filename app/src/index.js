@@ -6,7 +6,7 @@ const PORT = process.env.PORT || 3000;
 app.get('/', (req, res) => {
   res.json({
     status: 'ok',
-    message: 'Jenkins pipeline app is running',
+    message: 'Devops pipeline app is running',
     environment: process.env.NODE_ENV || 'development'
   });
 });
